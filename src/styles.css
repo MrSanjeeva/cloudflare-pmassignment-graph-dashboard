@@ -1,68 +1,107 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-	body {
-		@apply bg-void-black text-hologram-white font-sans antialiased;
-		margin: 0;
-		padding: 0;
-		overflow: hidden;
-	}
+@theme {
+	/* Nexus Dark Color Palette */
+	--color-void-black: #020408;
+	--color-glass-panel: #0f172a;
+	--color-core-reactor: #FF4500;
+	--color-solar-flare: #FF6B6B;
+	--color-cyan-data: #00F2FF;
+	--color-neon-violet: #BC13FE;
+	--color-hologram-white: #E2E8F0;
 
-	* {
-		box-sizing: border-box;
-	}
+	/* Custom Box Shadows for Glow Effects */
+	--shadow-glow-red: 0 0 20px rgba(255, 69, 0, 0.5);
+	--shadow-glow-red-lg: 0 0 30px rgba(255, 69, 0, 0.7);
+	--shadow-glow-cyan: 0 0 20px rgba(0, 242, 255, 0.5);
+	--shadow-glow-cyan-lg: 0 0 30px rgba(0, 242, 255, 0.7);
+	--shadow-glow-violet: 0 0 20px rgba(188, 19, 254, 0.5);
+	--shadow-glow-violet-lg: 0 0 30px rgba(188, 19, 254, 0.7);
+	--shadow-glow-flare: 0 0 20px rgba(255, 107, 107, 0.5);
+	--shadow-glow-flare-lg: 0 0 30px rgba(255, 107, 107, 0.7);
+
+	/* Font Families */
+	--font-family-sans: 'Inter', system-ui, sans-serif;
+	--font-family-mono: 'JetBrains Mono', 'Courier New', monospace;
 }
 
-@layer components {
-	.glass-panel {
-		background: rgba(15, 23, 42, 0.6);
-		backdrop-filter: blur(12px);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	.node-central {
-		@apply bg-core-reactor/20 border-2 border-core-reactor shadow-glow-red rounded-lg px-6 py-4;
-		transition: all 0.3s ease;
-	}
-
-	.node-central:hover {
-		@apply shadow-glow-red-lg scale-110;
-	}
-
-	.node-product {
-		@apply bg-solar-flare/20 border-2 border-solar-flare shadow-glow-flare rounded-lg px-4 py-3;
-		transition: all 0.3s ease;
-	}
-
-	.node-product:hover {
-		@apply shadow-glow-flare-lg scale-105;
-	}
-
-	.node-category {
-		@apply bg-cyan-data/20 border-2 border-cyan-data shadow-glow-cyan rounded-lg px-4 py-3;
-		transition: all 0.3s ease;
-	}
-
-	.node-category:hover {
-		@apply shadow-glow-cyan-lg scale-105;
-	}
-
-	.node-ticket {
-		@apply bg-neon-violet/20 border-2 border-neon-violet shadow-glow-violet rounded-md px-3 py-2;
-		transition: all 0.3s ease;
-	}
-
-	.node-ticket:hover {
-		@apply shadow-glow-violet-lg scale-105;
-	}
+body {
+	background-color: var(--color-void-black);
+	color: var(--color-hologram-white);
+	font-family: var(--font-family-sans);
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
 }
 
-@layer utilities {
-	.tracking-mega {
-		letter-spacing: 0.15em;
-	}
+* {
+	box-sizing: border-box;
+}
+
+.glass-panel {
+	background: rgba(15, 23, 42, 0.6);
+	backdrop-filter: blur(12px);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.node-central {
+	background: rgba(255, 69, 0, 0.2);
+	border: 2px solid var(--color-core-reactor);
+	box-shadow: var(--shadow-glow-red);
+	border-radius: 0.5rem;
+	padding: 1.5rem;
+	transition: all 0.3s ease;
+}
+
+.node-central:hover {
+	box-shadow: var(--shadow-glow-red-lg);
+	transform: scale(1.1);
+}
+
+.node-product {
+	background: rgba(255, 107, 107, 0.2);
+	border: 2px solid var(--color-solar-flare);
+	box-shadow: var(--shadow-glow-flare);
+	border-radius: 0.5rem;
+	padding: 1rem 0.75rem;
+	transition: all 0.3s ease;
+}
+
+.node-product:hover {
+	box-shadow: var(--shadow-glow-flare-lg);
+	transform: scale(1.05);
+}
+
+.node-category {
+	background: rgba(0, 242, 255, 0.2);
+	border: 2px solid var(--color-cyan-data);
+	box-shadow: var(--shadow-glow-cyan);
+	border-radius: 0.5rem;
+	padding: 1rem 0.75rem;
+	transition: all 0.3s ease;
+}
+
+.node-category:hover {
+	box-shadow: var(--shadow-glow-cyan-lg);
+	transform: scale(1.05);
+}
+
+.node-ticket {
+	background: rgba(188, 19, 254, 0.2);
+	border: 2px solid var(--color-neon-violet);
+	box-shadow: var(--shadow-glow-violet);
+	border-radius: 0.375rem;
+	padding: 0.75rem 0.5rem;
+	transition: all 0.3s ease;
+}
+
+.node-ticket:hover {
+	box-shadow: var(--shadow-glow-violet-lg);
+	transform: scale(1.05);
+}
+
+.tracking-mega {
+	letter-spacing: 0.15em;
 }

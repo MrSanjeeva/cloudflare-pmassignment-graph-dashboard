@@ -3,7 +3,9 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
-		"deploy": "wrangler deploy",
+		"build": "vite build",
+		"dev:vite": "vite",
+		"deploy": "npm run build && wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
 		"test": "vitest",
@@ -12,10 +14,14 @@
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.12.4",
 		"@tailwindcss/forms": "^0.5.11",
+		"@tailwindcss/postcss": "^4.1.18",
+		"@vitejs/plugin-react": "^5.1.2",
 		"autoprefixer": "^10.4.23",
 		"postcss": "^8.5.6",
 		"tailwindcss": "^4.1.18",
 		"typescript": "^5.5.2",
+		"vite": "^7.3.1",
+		"vite-plugin-css-injected-by-js": "^3.5.2",
 		"vitest": "~3.2.0",
 		"wrangler": "^4.60.0"
 	},
