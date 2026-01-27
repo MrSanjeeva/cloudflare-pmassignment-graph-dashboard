@@ -73,14 +73,14 @@ This document outlines the step-by-step implementation plan for the **Cloudflare
     - [x] **Checkpoint**: API implemented and deployed. *Testing with real data pending.*
 
 ## Phase 6: Mock Data & Testing
-- [ ] **Generate Mock Data**
-    - [ ] Write a script (or API endpoint) to populate the graph with a realistic initial state:
+- [x] **Generate Mock Data**
+    - [x] Created `/api/seed` endpoint to populate the graph with realistic initial state:
         - Central Node: "Cloudflare"
         - Products: "Workers", "Pages", "D1", "R2"
-        - Categories: "Docs", "Bugs" under each.
-        - 10-20 sample tickets spread across them.
-    - [ ] Why? To demonstrate the "Live Graph" feel immediately without manual entry.
-- [ ] **Verification**
-    - [ ] Verify the "Glow" effects work on hover.
-    - [ ] Test the "Duplicate Detection" by entering a semantically similar ticket.
-    - [ ] **Checkpoint**: Commit and Push to GitHub (Triggers Deploy).
+        - Categories: "Bugs", "Docs", "Features" under products.
+        - 10 sample tickets spread across categories.
+    - [x] Frontend dynamically fetches and renders all 21 nodes from database.
+- [x] **Verification**
+    - [x] Verified glow effects intensify on hover for all node types (cyan, violet, red, orange).
+    - [ ] Test duplicate detection (requires Vectorize on remote deployment).
+    - [x] **Checkpoint**: Committed and pushed to GitHub, deployed to production.
