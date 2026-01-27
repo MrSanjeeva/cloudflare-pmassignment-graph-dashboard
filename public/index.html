@@ -11,9 +11,45 @@
 	</head>
 	<body>
 		<div id="root"></div>
-		<script type="module">
-			import { renderApp } from './src/app.tsx';
-			renderApp();
+		<script>
+			// Simple client-side rendered dashboard demo
+			document.getElementById('root').innerHTML = `
+				<div style="background: #020408; color: #E2E8F0; font-family: Inter, sans-serif; padding: 40px; min-height: 100vh;">
+					<div style="max-width: 1200px; margin: 0 auto;">
+						<h1 style="color: #FF4500; font-size: 48px; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255, 69, 0, 0.5);">
+							CLOUDFLARE GRAPH DASHBOARD
+						</h1>
+						<p style="color: #00F2FF; font-size: 18px; margin-bottom: 40px;">
+							Live Node-Graph Based Interactive Dashboard - Nexus Dark Theme
+						</p>
+						<div style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 30px; margin-bottom: 20px;">
+							<h2 style="color: #00F2FF; margin-bottom: 15px;">🚀 Project Status</h2>
+							<ul style="line-height: 1.8; color: #E2E8F0;">
+								<li>✅ <strong>Infrastructure:</strong> Worker deployed with D1, Vectorize, AI bindings</li>
+								<li>✅ <strong>Design System:</strong> Nexus Dark theme with custom glows configured</li>
+								<li>✅ <strong>API Endpoints:</strong> /api/graph, /api/nodes, /api/tickets</li>
+								<li>✅ <strong>React Components:</strong> GraphDashboard, Custom Nodes created</li>
+								<li>⚠️ <strong>Build System:</strong> Needs transpilation setup for React/TypeScript</li>
+							</ul>
+						</div>
+						<div style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 30px;">
+							<h2 style="color: #BC13FE; margin-bottom: 15px;">📝 Next Steps</h2>
+							<p style="color: #E2E8F0; margin-bottom: 15px;">
+								To see the full React Flow graph visualization, the project needs a build system that can transpile TypeScript and JSX.
+								Options include:
+							</p>
+							<ul style="line-height: 1.8; color: #E2E8F0;">
+								<li><strong>Option 1:</strong> Add Vite bundler for development</li>
+								<li><strong>Option 2:</strong> Use esbuild plugin in wrangler</li>
+								<li><strong>Option 3:</strong> Pre-build with React build tools</li>
+							</ul>
+							<p style="color: #00F2FF; margin-top: 20px;">
+								Current API is functional. Test with: <code style="background: #0f172a; padding: 4px 8px; border-radius: 4px;">curl http://localhost:8787/api/graph</code>
+							</p>
+						</div>
+					</div>
+				</div>
+			`;
 		</script>
 	</body>
 </html>
