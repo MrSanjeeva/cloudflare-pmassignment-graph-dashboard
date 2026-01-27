@@ -74,13 +74,32 @@ export default function GraphDashboard() {
 		[setEdges]
 	);
 
-	// TODO: Fetch data from API
+	// Fetch data from API on mount
 	useEffect(() => {
-		// fetch('/api/graph').then(res => res.json()).then(data => {
-		//   setNodes(data.nodes);
-		//   setEdges(data.edges);
-		// });
-	}, []);
+		fetch('/api/graph')
+			.then((res) => res.json())
+			.then((data) => {
+				// Transform  DB nodes to ReactFlow nodes
+				const reactFlowNodes: Node[] = data.nodes.map((node: any) => ({
+					id: node.id,
+					type: node.type,
+					position: { x: node.x, y: node.y },
+					data: { label: node.label, ...JSON.parse(node.metadata || '{}') },
+				}));
+
+				// Transform DB edges to ReactFlow edges
+				const reactFlowEdges: Edge[] = data.edges.map((edge: any) => ({
+					id: edge.id,
+					source: edge.source,
+					target: edge.target,
+					animated: edge.source === 'cloudflare', // Animate edges from central node
+				}));
+
+				setNodes(reactFlowNodes);
+				setEdges(reactFlowEdges);
+			})
+			.catch((err) => console.error('Failed to load graph data:', err));
+	}, [setNodes, setEdges]);
 
 	return (
 		<div className="h-screen w-screen flex flex-col">
