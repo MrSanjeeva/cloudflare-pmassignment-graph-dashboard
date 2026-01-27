@@ -16,7 +16,7 @@
 	},
 	"observability": {
 		"enabled": true
-	}
+	},
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -40,4 +40,20 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
 	 */
 	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+	"ai": {
+		"binding": "AI"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "cloudflare-graph-db",
+			"database_id": "3e2a149f-01c8-4fc0-be2d-e46fc22fe62b"
+		}
+	],
+	"vectorize": [
+		{
+			"binding": "VECTORIZE_INDEX",
+			"index_name": "cloudflare-graph-vec"
+		}
+	]
 }
