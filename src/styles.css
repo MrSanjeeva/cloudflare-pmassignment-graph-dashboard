@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	body {
+		@apply bg-void-black text-hologram-white font-sans antialiased;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+}
+
+@layer components {
+	.glass-panel {
+		background: rgba(15, 23, 42, 0.6);
+		backdrop-filter: blur(12px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.node-central {
+		@apply bg-core-reactor/20 border-2 border-core-reactor shadow-glow-red rounded-lg px-6 py-4;
+		transition: all 0.3s ease;
+	}
+
+	.node-central:hover {
+		@apply shadow-glow-red-lg scale-110;
+	}
+
+	.node-product {
+		@apply bg-solar-flare/20 border-2 border-solar-flare shadow-glow-flare rounded-lg px-4 py-3;
+		transition: all 0.3s ease;
+	}
+
+	.node-product:hover {
+		@apply shadow-glow-flare-lg scale-105;
+	}
+
+	.node-category {
+		@apply bg-cyan-data/20 border-2 border-cyan-data shadow-glow-cyan rounded-lg px-4 py-3;
+		transition: all 0.3s ease;
+	}
+
+	.node-category:hover {
+		@apply shadow-glow-cyan-lg scale-105;
+	}
+
+	.node-ticket {
+		@apply bg-neon-violet/20 border-2 border-neon-violet shadow-glow-violet rounded-md px-3 py-2;
+		transition: all 0.3s ease;
+	}
+
+	.node-ticket:hover {
+		@apply shadow-glow-violet-lg scale-105;
+	}
+}
+
+@layer utilities {
+	.tracking-mega {
+		letter-spacing: 0.15em;
+	}
+}
