@@ -3,17 +3,17 @@
 This document outlines the step-by-step implementation plan for the **Cloudflare Live Graph Dashboard**, derived from the [PRD](./prd.md), [Design Doc](./design_doc.md), and [Tech Stack](./tech_stack.md).
 
 ## Phase 1: Project Setup & Configuration (Tech Stack)
-- [ ] **Initialize Project**
-    - [ ] Run `npm create cloudflare@latest` (React + Vite).
-    - [ ] Configure `wrangler.toml` with `[[d1_databases]]`, `[[vectorize]]`, and `[ai]` bindings.
-    - [ ] Install dependencies: `reactflow`, `lucide-react`, `clsx`, `tailwind-merge` (for HUD styles).
+- [x] **Initialize Project**
+    - [x] Run `npm create cloudflare@latest` (React + Vite).
+    - [x] Configure `wrangler.toml` with `[[d1_databases]]`, `[[vectorize]]`, and `[ai]` bindings.
+    - [x] Install dependencies: `reactflow`, `lucide-react`, `clsx`, `tailwind-merge` (for HUD styles).
 - [ ] **GitHub & CI/CD Setup**
-    - [ ] Initialize Git repository (`git init`, `git add .`, `git commit -m "Initial commit"`).
+    - [x] Initialize Git repository (`git init`, `git add .`, `git commit -m "Initial commit"`).
     - [ ] Create GitHub Repository (via `gh repo create` or manual).
     - [ ] Push local code to GitHub.
     - [ ] Connect Cloudflare Pages project to GitHub Repo to enable CI/CD (Automatic Deployment on push).
-- [ ] **Setup Friction Log**
-    - [ ] Create `docs/friction_log.md` to track developer experience issues, error messages, and confusing documentation as per assignment requirements.
+- [x] **Setup Friction Log**
+    - [x] Create `docs/friction_log.md` to track developer experience issues, error messages, and confusing documentation as per assignment requirements.
 
 ## Phase 2: Design System "Nexus Dark" (Design Doc)
 - [ ] **Theme Configuration**
@@ -31,12 +31,12 @@ This document outlines the step-by-step implementation plan for the **Cloudflare
     - [ ] **Checkpoint**: Commit and Push to GitHub (Triggers Deploy).
 
 ## Phase 3: Backend Implementation (Workers + D1 + Vectorize)
-- [ ] **Database Schema (D1)**
-    - [ ] Create `schema.sql` defining:
+- [x] **Database Schema (D1)**
+    - [x] Create `schema.sql` defining:
         - `nodes` (id, type, label, x, y, metadata)
         - `edges` (id, source, target)
         - `tickets` (id, node_id, title, status, description, embedding_id)
-    - [ ] Run `wrangler d1 migrations apply`.
+    - [x] Run `wrangler d1 migrations apply`.
 - [ ] **API Development (Hono)**
     - [ ] Implement `GET /api/graph` to fetch the full node/edge dataset.
     - [ ] Implement `POST /api/tickets` to create new tickets.
