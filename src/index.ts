@@ -190,43 +190,87 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 				).bind(`e-${category.product}-${category.id}`, category.product, category.id, 'default').run();
 			}
 
-			// Create sample tickets
-			const tickets = [
-				{ category: 'workers-bugs', title: 'API timeout after 30 seconds', description: 'Workers API calls timeout inconsistently' },
-				{ category: 'workers-bugs', title: 'Fetch API timing out', description: 'External fetch requests fail with timeout error' },
-			];
+				// Comprehensive tickets for ALL 8 categories
+				const tickets = [
+					// Workers - Bugs
+					{ category: 'workers-bugs', title: 'API timeout after 30 seconds', description: 'Workers API calls timeout inconsistently' },
+					{ category: 'workers-bugs', title: 'Fetch API timing out', description: 'External fetch requests fail with timeout error' },
+					{ category: 'workers-bugs', title: 'Memory limit exceeded', description: 'Worker crashes when processing large payloads' },
+					// Workers - Docs
+					{ category: 'workers-docs', title: 'Missing KV examples', description: 'Need more examples for KV operations' },
+					{ category: 'workers-docs', title: 'Outdated deployment guide', description: 'Wrangler CLI documentation is outdated' },
+					// R2 - Bugs
+					{ category: 'r2-bugs', title: 'Slow upload speeds', description: 'Large file uploads are slower than expected' },
+					{ category: 'r2-bugs', title: 'CORS not working', description: 'CORS headers not being applied correctly' },
+					// R2 - Features
+					{ category: 'r2-features', title: 'Lifecycle policies', description: 'Request for object lifecycle management' },
+					{ category: 'r2-features', title: 'Object versioning', description: 'Need object versioning support' },
+					// D1 - Bugs
+					{ category: 'd1-bugs', title: 'Connection pool exhausted', description: 'Database connections running out under load' },
+					{ category: 'd1-bugs', title: 'Query timeout issues', description: 'Complex queries timing out unexpectedly' },
+					// D1 - Features
+					{ category: 'd1-features', title: 'Migration rollback', description: 'Need ability to rollback migrations' },
+					{ category: 'd1-features', title: 'Transaction support', description: 'Request for multi-statement transactions' },
+					// Pages - Bugs
+					{ category: 'pages-bugs', title: 'Build fails on deployment', description: 'Builds failing with unclear error messages' },
+					{ category: 'pages-bugs', title: 'Env vars not loading', description: 'Environment variables not available during build' },
+					// Pages - Features
+					{ category: 'pages-features', title: 'Monorepo support', description: 'Better support for monorepo structures' },
+					{ category: 'pages-features', title: 'Custom build commands', description: 'Allow custom build scripts and commands' },
+				];
 
-			const ticketRadius = 150; // Increased from 120
-			let ticketCount = 0;
-			for (const ticket of tickets) {
-				const ticketId = `ticket-${ticketCount++}`;
-				const nodeId = `${ticket.category}-${ticketId}`;
 
-				// Find category and its product
-				const category = categories.find(c => c.id === ticket.category)!;
-				const product = products.find(p => p.id === category.product)!;
+			const ticketRadius = 150;
+		
+		// Group tickets by category to position them in arcs
+		const ticketsByCategory: Record<string, typeof tickets> = {};
+		for (const ticket of tickets) {
+			if (!ticketsByCategory[ticket.category]) {
+				ticketsByCategory[ticket.category] = [];
+			}
+			ticketsByCategory[ticket.category].push(ticket);
+		}
+		
+		let ticketCount = 0;
+		for (const ticket of tickets) {
+			const ticketId = `ticket-${ticketCount++}`;
+			const nodeId = `${ticket.category}-${ticketId}`;
 
-				// Calculate category position
-				const baseAngleRad = (product.angle * Math.PI) / 180;
-				const offsetAngleRad = (category.offsetAngle * Math.PI) / 180;
-				const categoryAngleRad = baseAngleRad + offsetAngleRad;
-				const productX = centerX + productRadius * Math.cos(baseAngleRad);
-				const productY = centerY + productRadius * Math.sin(baseAngleRad);
-				const categoryX = productX + categoryRadius * Math.cos(categoryAngleRad);
-				const categoryY = productY + categoryRadius * Math.sin(categoryAngleRad);
+			// Find category and its product
+			const category = categories.find(c => c.id === ticket.category)!;
+			const product = products.find(p => p.id === category.product)!;
 
-				// Position tickets in a small arc around the category
-				const ticketOffsetAngle = ticketId === 'ticket-0' ? -20 : 20;
-				const ticketAngleRad = categoryAngleRad + (ticketOffsetAngle * Math.PI) / 180;
-				const x = categoryX + ticketRadius * Math.cos(ticketAngleRad);
-				const y = categoryY + ticketRadius * Math.sin(ticketAngleRad);
+			// Calculate category position
+			const baseAngleRad = (product.angle * Math.PI) / 180;
+			const offsetAngleRad = (category.offsetAngle * Math.PI) / 180;
+			const categoryAngleRad = baseAngleRad + offsetAngleRad;
+			const productX = centerX + productRadius * Math.cos(baseAngleRad);
+			const productY = centerY + productRadius * Math.sin(baseAngleRad);
+			const categoryX = productX + categoryRadius * Math.cos(categoryAngleRad);
+			const categoryY = productY + categoryRadius * Math.sin(categoryAngleRad);
 
-				// Mark second ticket as duplicate
-				const metadata: any = {};
-				if (ticketId === 'ticket-1') {
-					metadata.duplicateOf = 'workers-bugs-ticket-0';
-					metadata.duplicateScore = 0.94;
-				}
+			// Position tickets in an arc around the category
+			const categoryTickets = ticketsByCategory[ticket.category];
+			const ticketIndex = categoryTickets.indexOf(ticket);
+			const totalTickets = categoryTickets.length;
+			
+			// Spread tickets in a 60-degree arc around the category
+			const arcSpan = 60; // degrees
+			const ticketOffsetAngle = totalTickets > 1 
+				? -arcSpan/2 + (ticketIndex / (totalTickets - 1)) * arcSpan
+				: 0;
+				
+			const ticketAngleRad = categoryAngleRad + (ticketOffsetAngle * Math.PI) / 180;
+			const x = categoryX + ticketRadius * Math.cos(ticketAngleRad);
+			const y = categoryY + ticketRadius * Math.sin(ticketAngleRad);
+
+			// Mark second ticket as duplicate (Fetch API timing out)
+			const metadata: any = {};
+			if (ticketId === 'ticket-1') {
+				metadata.duplicateOf = 'workers-bugs-ticket-0';
+				metadata.duplicateScore = 0.94;
+			}
+
 
 				await env.DB.prepare(
 					'INSERT INTO nodes (id, type, label, x, y, metadata) VALUES (?, ?, ?, ?, ?, ?)'

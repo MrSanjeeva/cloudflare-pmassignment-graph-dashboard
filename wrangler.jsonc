@@ -41,7 +41,8 @@
 	 */
 	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
 	"ai": {
-		"binding": "AI"
+		"binding": "AI",
+		"remote": true
 	},
 	"d1_databases": [
 		{
@@ -53,7 +54,8 @@
 	"vectorize": [
 		{
 			"binding": "VECTORIZE_INDEX",
-			"index_name": "cloudflare-graph-vec"
+			"index_name": "cloudflare-graph-vec",
+			"remote": true
 		}
 	]
 }

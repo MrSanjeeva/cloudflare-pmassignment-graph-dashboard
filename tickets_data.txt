@@ -1,0 +1,28 @@
+// Comprehensive tickets for ALL 8 categories
+const tickets = [
+	// Workers - Bugs
+	{ category: 'workers-bugs', title: 'API timeout after 30 seconds', description: 'Workers API calls timeout inconsistently' },
+	{ category: 'workers-bugs', title: 'Fetch API timing out', description: 'External fetch requests fail with timeout error' },
+	{ category: 'workers-bugs', title: 'Memory limit exceeded', description: 'Worker crashes when processing large payloads' },
+	// Workers - Docs
+	{ category: 'workers-docs', title: 'Missing KV examples', description: 'Need more examples for KV operations' },
+	{ category: 'workers-docs', title: 'Outdated deployment guide', description: 'Wrangler CLI documentation is outdated' },
+	// R2 - Bugs
+	{ category: 'r2-bugs', title: 'Slow upload speeds', description: 'Large file uploads are slower than expected' },
+	{ category: 'r2-bugs', title: 'CORS not working', description: 'CORS headers not being applied correctly' },
+	// R2 - Features
+	{ category: 'r2-features', title: 'Lifecycle policies', description: 'Request for object lifecycle management' },
+	{ category: 'r2-features', title: 'Object versioning', description: 'Need object versioning support' },
+	// D1 - Bugs
+	{ category: 'd1-bugs', title: 'Connection pool exhausted', description: 'Database connections running out under load' },
+	{ category: 'd1-bugs', title: 'Query timeout issues', description: 'Complex queries timing out unexpectedly' },
+	// D1 - Features
+	{ category: 'd1-features', title: 'Migration rollback', description: 'Need ability to rollback migrations' },
+	{ category: 'd1-features', title: 'Transaction support', description: 'Request for multi-statement transactions' },
+	// Pages - Bugs
+	{ category: 'pages-bugs', title: 'Build fails on deployment', description: 'Builds failing with unclear error messages' },
+	{ category: 'pages-bugs', title: 'Env vars not loading', description: 'Environment variables not available during build' },
+	// Pages - Features
+	{ category: 'pages-features', title: 'Monorepo support', description: 'Better support for monorepo structures' },
+	{ category: 'pages-features', title: 'Custom build commands', description: 'Allow custom build scripts and commands' },
+];

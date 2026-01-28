@@ -1,0 +1,50 @@
+		const ticketRadius = 150;
+		
+		// Group tickets by category to position them in arcs
+		const ticketsByCategory: Record<string, typeof tickets> = {};
+		for (const ticket of tickets) {
+			if (!ticketsByCategory[ticket.category]) {
+				ticketsByCategory[ticket.category] = [];
+			}
+			ticketsByCategory[ticket.category].push(ticket);
+		}
+		
+		let ticketCount = 0;
+		for (const ticket of tickets) {
+			const ticketId = `ticket-${ticketCount++}`;
+			const nodeId = `${ticket.category}-${ticketId}`;
+
+			// Find category and its product
+			const category = categories.find(c => c.id === ticket.category)!;
+			const product = products.find(p => p.id === category.product)!;
+
+			// Calculate category position
+			const baseAngleRad = (product.angle * Math.PI) / 180;
+			const offsetAngleRad = (category.offsetAngle * Math.PI) / 180;
+			const categoryAngleRad = baseAngleRad + offsetAngleRad;
+			const productX = centerX + productRadius * Math.cos(baseAngleRad);
+			const productY = centerY + productRadius * Math.sin(baseAngleRad);
+			const categoryX = productX + categoryRadius * Math.cos(categoryAngleRad);
+			const categoryY = productY + categoryRadius * Math.sin(categoryAngleRad);
+
+			// Position tickets in an arc around the category
+			const categoryTickets = ticketsByCategory[ticket.category];
+			const ticketIndex = categoryTickets.indexOf(ticket);
+			const totalTickets = categoryTickets.length;
+			
+			// Spread tickets in a 60-degree arc around the category
+			const arcSpan = 60; // degrees
+			const ticketOffsetAngle = totalTickets > 1 
+				? -arcSpan/2 + (ticketIndex / (totalTickets - 1)) * arcSpan
+				: 0;
+				
+			const ticketAngleRad = categoryAngleRad + (ticketOffsetAngle * Math.PI) / 180;
+			const x = categoryX + ticketRadius * Math.cos(ticketAngleRad);
+			const y = categoryY + ticketRadius * Math.sin(ticketAngleRad);
+
+			// Mark second ticket as duplicate (Fetch API timing out)
+			const metadata: any = {};
+			if (ticketId === 'ticket-1') {
+				metadata.duplicateOf = 'workers-bugs-ticket-0';
+				metadata.duplicateScore = 0.94;
+			}
