@@ -7,7 +7,11 @@ export default function TicketNode({ data }: { data: any }) {
 
 	return (
 		<div className="relative">
+			{/* Target handles on all sides for incoming edges */}
 			<Handle type="target" position={Position.Top} className="opacity-0" />
+			<Handle type="target" position={Position.Right} className="opacity-0" />
+			<Handle type="target" position={Position.Bottom} className="opacity-0" />
+			<Handle type="target" position={Position.Left} className="opacity-0" />
 			{/* Small circular node for tickets */}
 			<div className="w-[95px] h-[95px] rounded-full bg-glass-panel border-2 border-neon-violet flex items-center justify-center shadow-glow-violet">
 				<div className="text-center px-2">
