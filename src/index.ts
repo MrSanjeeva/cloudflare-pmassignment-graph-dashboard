@@ -122,43 +122,68 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 			await env.DB.prepare('DELETE FROM edges').run();
 			await env.DB.prepare('DELETE FROM nodes').run();
 
-			// Create central node
+			const centerX = 500;
+			const centerY = 400;
+
+			// Create central node at center
 			await env.DB.prepare(
 				'INSERT INTO nodes (id, type, label, x, y, metadata) VALUES (?, ?, ?, ?, ?, ?)'
-			).bind('cloudflare', 'central', 'Cloudflare', 400, 300, JSON.stringify({})).run();
+			).bind('cloudflare', 'central', 'Cloudflare', centerX, centerY, JSON.stringify({})).run();
 
-			// Create product nodes
+			// Create product nodes in a circle around center
 			const products = [
-				{ id: 'workers', label: 'Workers', x: 150, y: 100 },
-				{ id: 'pages', label: 'Pages', x: 650, y: 100 },
-				{ id: 'd1', label: 'D1', x: 150, y: 500 },
-				{ id: 'r2', label: 'R2', x: 650, y: 500 },
+				{ id: 'workers', label: 'Workers', angle: -90 }, // top
+				{ id: 'r2', label: 'R2', angle: 0 }, // right
+				{ id: 'd1', label: 'D1', angle: 90 }, // bottom
+				{ id: 'pages', label: 'Pages', angle: 180 }, // left
 			];
 
+			const productRadius = 200;
 			for (const product of products) {
-				await env.DB.prepare(
-					'INSERT INTO nodes (id, type, label, x, y, metadata) VALUES (?, ?, ?, ?, ?, ?)'
-				).bind(product.id, 'product', product.label, product.x, product.y, JSON.stringify({})).run();
+				const angleRad = (product.angle * Math.PI) / 180;
+				const x = centerX + productRadius * Math.cos(angleRad);
+				const y = centerY + productRadius * Math.sin(angleRad);
 
 				await env.DB.prepare(
-					'INSERT INTO edges (id, source, target, type) VALUES (?, ?, ?, ?)'
+					'INSERT INTO nodes (id, type, label, x, y, metadata) VALUES (?, ?, ?, ?, ?, ?)'
+				).bind(product.id, 'product', product.label, x, y, JSON.stringify({})).run();
+
+				await env.DB.prepare(
+					'INSERT INTO edges (id, source, target, type) VALUES (?, ?, ?, ?))'
 				).bind(`e-cf-${product.id}`, 'cloudflare', product.id, 'default').run();
 			}
 
-			// Create category nodes
+			// Create category nodes branching from products
 			const categories = [
-				{ id: 'workers-bugs', product: 'workers', label: 'Bugs', x: 50, y: 50 },
-				{ id: 'workers-docs', product: 'workers', label: 'Docs', x: 250, y: 50 },
-				{ id: 'pages-bugs', product: 'pages', label: 'Bugs', x: 550, y: 50 },
-				{ id: 'pages-features', product: 'pages', label: 'Features', x: 750, y: 50 },
-				{ id: 'd1-bugs', product: 'd1', label: 'Bugs', x: 50, y: 550 },
-				{ id: 'd1-features', product: 'd1', label: 'Features', x: 250, y: 550 },
+				// Workers categories (top)
+				{ id: 'workers-bugs', product: 'workers', label: 'Bugs', offsetAngle: -30 },
+				{ id: 'workers-docs', product: 'workers', label: 'Docs', offsetAngle: 30 },
+				// R2 categories (right)
+				{ id: 'r2-bugs', product: 'r2', label: 'Bugs', offsetAngle: -30 },
+				{ id: 'r2-features', product: 'r2', label: 'Feature Request', offsetAngle: 30 },
+				// D1 categories (bottom)
+				{ id: 'd1-bugs', product: 'd1', label: 'Bugs', offsetAngle: -30 },
+				{ id: 'd1-features', product: 'd1', label: 'Feature Request', offsetAngle: 30 },
+				// Pages categories (left)
+				{ id: 'pages-bugs', product: 'pages', label: 'Bugs', offsetAngle: -30 },
+				{ id: 'pages-features', product: 'pages', label: 'Feature Request', offsetAngle: 30 },
 			];
 
+			const categoryRadius = 140;
 			for (const category of categories) {
+				const product = products.find(p => p.id === category.product)!;
+				const baseAngleRad = (product.angle * Math.PI) / 180;
+				const offsetAngleRad = (category.offsetAngle * Math.PI) / 180;
+				const categoryAngleRad = baseAngleRad + offsetAngleRad;
+
+				const productX = centerX + productRadius * Math.cos(baseAngleRad);
+				const productY = centerY + productRadius * Math.sin(baseAngleRad);
+				const x = productX + categoryRadius * Math.cos(categoryAngleRad);
+				const y = productY + categoryRadius * Math.sin(categoryAngleRad);
+
 				await env.DB.prepare(
 					'INSERT INTO nodes (id, type, label, x, y, metadata) VALUES (?, ?, ?, ?, ?, ?)'
-				).bind(category.id, 'category', category.label, category.x, category.y, JSON.stringify({})).run();
+				).bind(category.id, 'category', category.label, x, y, JSON.stringify({})).run();
 
 				await env.DB.prepare(
 					'INSERT INTO edges (id, source, target, type) VALUES (?, ?, ?, ?)'
@@ -167,45 +192,60 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 
 			// Create sample tickets
 			const tickets = [
-				{ category: 'workers-bugs', title: 'API timeout after 30 seconds', description: 'Workers API calls timeout inconsistently', origin: 'Discord' },
-				{ category: 'workers-bugs', title: 'Fetch API timing out', description: 'External fetch requests fail with timeout error', origin: 'GitHub' },
-				{ category: 'workers-docs', title: 'Missing KV examples', description: 'Need more examples for Workers KV usage', origin: 'Community' },
-				{ category: 'pages-bugs', title: 'Build fails on deployment', description: 'React build step fails during Pages deployment', origin: 'GitHub' },
-				{ category: 'pages-features', title: 'Add Svelte support', description: 'Request for first-class Svelte framework support', origin: 'Discord' },
-				{ category: 'pages-features', title: 'Custom build commands', description: 'Allow custom build scripts in Pages config', origin: 'Community' },
-				{ category: 'd1-bugs', title: 'Connection pool exhausted', description: 'D1 database runs out of connections under load', origin: 'GitHub' },
-				{ category: 'd1-bugs', title: 'Query timeout on large tables', description: 'SELECT queries timeout on tables with 100k+ rows', origin: 'Discord' },
-				{ category: 'd1-features', title: 'Support for triggers', description: 'Add SQL trigger support to D1', origin: 'Community' },
-				{ category: 'd1-features', title: 'Full-text search', description: 'Add FTS5 full-text search capabilities', origin: 'GitHub' },
+				{ category: 'workers-bugs', title: 'API timeout after 30 seconds', description: 'Workers API calls timeout inconsistently' },
+				{ category: 'workers-bugs', title: 'Fetch API timing out', description: 'External fetch requests fail with timeout error' },
 			];
 
+			const ticketRadius = 120;
 			let ticketCount = 0;
 			for (const ticket of tickets) {
 				const ticketId = `ticket-${ticketCount++}`;
 				const nodeId = `${ticket.category}-${ticketId}`;
 
-				// Insert ticket node
+				// Find category and its product
+				const category = categories.find(c => c.id === ticket.category)!;
+				const product = products.find(p => p.id === category.product)!;
+
+				// Calculate category position
+				const baseAngleRad = (product.angle * Math.PI) / 180;
+				const offsetAngleRad = (category.offsetAngle * Math.PI) / 180;
+				const categoryAngleRad = baseAngleRad + offsetAngleRad;
+				const productX = centerX + productRadius * Math.cos(baseAngleRad);
+				const productY = centerY + productRadius * Math.sin(baseAngleRad);
+				const categoryX = productX + categoryRadius * Math.cos(categoryAngleRad);
+				const categoryY = productY + categoryRadius * Math.sin(categoryAngleRad);
+
+				// Position tickets in a small arc around the category
+				const ticketOffsetAngle = ticketId === 'ticket-0' ? -20 : 20;
+				const ticketAngleRad = categoryAngleRad + (ticketOffsetAngle * Math.PI) / 180;
+				const x = categoryX + ticketRadius * Math.cos(ticketAngleRad);
+				const y = categoryY + ticketRadius * Math.sin(ticketAngleRad);
+
+				// Mark second ticket as duplicate
+				const metadata: any = {};
+				if (ticketId === 'ticket-1') {
+					metadata.duplicateOf = 'workers-bugs-ticket-0';
+					metadata.duplicateScore = 0.94;
+				}
+
 				await env.DB.prepare(
 					'INSERT INTO nodes (id, type, label, x, y, metadata) VALUES (?, ?, ?, ?, ?, ?)'
-				).bind(
-					nodeId,
-					'ticket',
-					ticket.title,
-					Math.random() * 800,
-					Math.random() * 600,
-					JSON.stringify({ origin: ticket.origin })
-				).run();
+				).bind(nodeId, 'ticket', ticket.title, x, y, JSON.stringify(metadata)).run();
 
-				// Insert edge
 				await env.DB.prepare(
 					'INSERT INTO edges (id, source, target, type) VALUES (?, ?, ?, ?)'
 				).bind(`e-${ticket.category}-${nodeId}`, ticket.category, nodeId, 'default').run();
 
-				// Insert ticket record
 				await env.DB.prepare(
 					'INSERT INTO tickets (id, node_id, title, description, status, created_at) VALUES (?, ?, ?, ?, ?, ?)'
 				).bind(ticketId, nodeId, ticket.title, ticket.description, 'open', Date.now()).run();
 			}
+
+			return new Response(
+				JSON.stringify({ success: true, message: 'Mock data created', counts: { products: products.length, categories: categories.length, tickets: tickets.length } }),
+				{ headers }
+			);
+		}
 
 			return new Response(
 				JSON.stringify({ success: true, message: 'Mock data created', counts: { products: products.length, categories: categories.length, tickets: tickets.length } }),
