@@ -122,8 +122,8 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 			await env.DB.prepare('DELETE FROM edges').run();
 			await env.DB.prepare('DELETE FROM nodes').run();
 
-			const centerX = 500;
-			const centerY = 400;
+			const centerX = 600;
+			const centerY = 450;
 
 			// Create central node at center
 			await env.DB.prepare(
@@ -138,7 +138,7 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 				{ id: 'pages', label: 'Pages', angle: 180 }, // left
 			];
 
-			const productRadius = 200;
+			const productRadius = 250; // Increased from 200
 			for (const product of products) {
 				const angleRad = (product.angle * Math.PI) / 180;
 				const x = centerX + productRadius * Math.cos(angleRad);
@@ -149,27 +149,27 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 				).bind(product.id, 'product', product.label, x, y, JSON.stringify({})).run();
 
 				await env.DB.prepare(
-					'INSERT INTO edges (id, source, target, type) VALUES (?, ?, ?, ?))'
+					'INSERT INTO edges (id, source, target, type) VALUES (?, ?, ?, ?)'
 				).bind(`e-cf-${product.id}`, 'cloudflare', product.id, 'default').run();
 			}
 
 			// Create category nodes branching from products
 			const categories = [
-				// Workers categories (top)
-				{ id: 'workers-bugs', product: 'workers', label: 'Bugs', offsetAngle: -30 },
-				{ id: 'workers-docs', product: 'workers', label: 'Docs', offsetAngle: 30 },
+				// Workers categories (top) - wider angle spread
+				{ id: 'workers-bugs', product: 'workers', label: 'Bugs', offsetAngle: -40 },
+				{ id: 'workers-docs', product: 'workers', label: 'Docs', offsetAngle: 40 },
 				// R2 categories (right)
-				{ id: 'r2-bugs', product: 'r2', label: 'Bugs', offsetAngle: -30 },
-				{ id: 'r2-features', product: 'r2', label: 'Feature Request', offsetAngle: 30 },
+				{ id: 'r2-bugs', product: 'r2', label: 'Bugs', offsetAngle: -40 },
+				{ id: 'r2-features', product: 'r2', label: 'Feature Request', offsetAngle: 40 },
 				// D1 categories (bottom)
-				{ id: 'd1-bugs', product: 'd1', label: 'Bugs', offsetAngle: -30 },
-				{ id: 'd1-features', product: 'd1', label: 'Feature Request', offsetAngle: 30 },
+				{ id: 'd1-bugs', product: 'd1', label: 'Bugs', offsetAngle: -40 },
+				{ id: 'd1-features', product: 'd1', label: 'Feature Request', offsetAngle: 40 },
 				// Pages categories (left)
-				{ id: 'pages-bugs', product: 'pages', label: 'Bugs', offsetAngle: -30 },
-				{ id: 'pages-features', product: 'pages', label: 'Feature Request', offsetAngle: 30 },
+				{ id: 'pages-bugs', product: 'pages', label: 'Bugs', offsetAngle: -40 },
+				{ id: 'pages-features', product: 'pages', label: 'Feature Request', offsetAngle: 40 },
 			];
 
-			const categoryRadius = 140;
+			const categoryRadius = 180; // Increased from 140
 			for (const category of categories) {
 				const product = products.find(p => p.id === category.product)!;
 				const baseAngleRad = (product.angle * Math.PI) / 180;
@@ -196,7 +196,7 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 				{ category: 'workers-bugs', title: 'Fetch API timing out', description: 'External fetch requests fail with timeout error' },
 			];
 
-			const ticketRadius = 120;
+			const ticketRadius = 150; // Increased from 120
 			let ticketCount = 0;
 			for (const ticket of tickets) {
 				const ticketId = `ticket-${ticketCount++}`;
@@ -247,11 +247,7 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 			);
 		}
 
-			return new Response(
-				JSON.stringify({ success: true, message: 'Mock data created', counts: { products: products.length, categories: categories.length, tickets: tickets.length } }),
-				{ headers }
-			);
-		}
+	
 
 		return new Response('Not Found', { status: 404, headers });
 	} catch (error: any) {
