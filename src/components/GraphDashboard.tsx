@@ -18,6 +18,7 @@ import ProductNode from './nodes/ProductNode';
 import CategoryNode from './nodes/CategoryNode';
 import TicketNode from './nodes/TicketNode';
 import TicketDetailPanel from './TicketDetailPanel';
+import GuidedTour from './GuidedTour';
 
 const nodeTypes = {
 	central: CentralNode,
@@ -74,11 +75,42 @@ export default function GraphDashboard() {
 	const [allNodes, setAllNodes] = useState<Node[]>([]);
 	const [allEdges, setAllEdges] = useState<Edge[]>([]);
 	const [selectedTicket, setSelectedTicket] = useState<Node | null>(null);
+	const [showTour, setShowTour] = useState(false);
+
+	// Check if user has completed tour (trigger AFTER graph loads)
+	useEffect(() => {
+		// Only trigger tour after graph data is loaded
+		if (allNodes.length > 0) {
+			const tourCompleted = localStorage.getItem('cloudflare-graph-tour-completed');
+			if (!tourCompleted) {
+				// Show tour after a brief delay to let graph render
+				setTimeout(() => setShowTour(true), 2000);
+			}
+		}
+	}, [allNodes]);
 
 	const onConnect = useCallback(
 		(params: Connection) => setEdges((eds) => addEdge(params, eds)),
 		[setEdges]
 	);
+
+	// Handle tour completion
+	const handleTourComplete = () => {
+		localStorage.setItem('cloudflare-graph-tour-completed', 'true');
+		setShowTour(false);
+	};
+
+	// Handle tour skip
+	const handleTourSkip = () => {
+		localStorage.setItem('cloudflare-graph-tour-completed', 'true');
+		setShowTour(false);
+	};
+
+	// Restart tour manually
+	const restartTour = () => {
+		localStorage.removeItem('cloudflare-graph-tour-completed');
+		setShowTour(true);
+	};
 
 	// Fetch data from API on mount
 	useEffect(() => {
@@ -248,6 +280,25 @@ export default function GraphDashboard() {
 					ticket={selectedTicket.data} 
 					onClose={() => setSelectedTicket(null)} 
 				/>
+			)}
+
+			{/* Guided Tour */}
+			{showTour && (
+				<GuidedTour 
+					onComplete={handleTourComplete}
+					onSkip={handleTourSkip}
+				/>
+			)}
+
+			{/* Help Button to restart tour */}
+			{!showTour && (
+				<button 
+					onClick={restartTour}
+					className="help-button"
+					title="Restart Tour"
+				>
+					?
+				</button>
 			)}
 		</div>
 	);
