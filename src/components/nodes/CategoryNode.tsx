@@ -20,12 +20,12 @@ export default function CategoryNode({ data }: NodeProps) {
 			{inFocusMode ? (
 				/* Rectangle node for focus mode */
 				<div className="w-[120px] h-[50px] rounded-lg bg-glass-panel border-2 border-neon-violet flex items-center justify-center shadow-glow-violet">
-					<span className="text-sm font-semibold text-neon-violet">{data.label}</span>
+					<span className="text-sm font-semibold text-neon-violet text-center leading-tight px-2">{data.label}</span>
 				</div>
 			) : (
 				/* Circular node for radial mode */
-				<div className="w-[90px] h-[90px] rounded-full bg-glass-panel border-2 border-neon-violet flex items-center justify-center shadow-glow-violet">
-					<span className="text-xs font-medium text-neon-violet">{data.label}</span>
+				<div className="w-[90px] h-[90px] rounded-full bg-glass-panel border-2 border-neon-violet flex items-center justify-center shadow-glow-violet p-2">
+					<span className="text-xs font-medium text-neon-violet text-center leading-tight">{data.label}</span>
 				</div>
 			)}
 		</div>

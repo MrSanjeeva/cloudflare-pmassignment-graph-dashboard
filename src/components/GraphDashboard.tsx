@@ -17,6 +17,7 @@ import CentralNode from './nodes/CentralNode';
 import ProductNode from './nodes/ProductNode';
 import CategoryNode from './nodes/CategoryNode';
 import TicketNode from './nodes/TicketNode';
+import TicketDetailPanel from './TicketDetailPanel';
 
 const nodeTypes = {
 	central: CentralNode,
@@ -72,6 +73,7 @@ export default function GraphDashboard() {
 	const [focusedProduct, setFocusedProduct] = useState<string | null>(null);
 	const [allNodes, setAllNodes] = useState<Node[]>([]);
 	const [allEdges, setAllEdges] = useState<Edge[]>([]);
+	const [selectedTicket, setSelectedTicket] = useState<Node | null>(null);
 
 	const onConnect = useCallback(
 		(params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -107,10 +109,12 @@ export default function GraphDashboard() {
 			.catch((err) => console.error('Failed to load graph data:', err));
 	}, [setNodes, setEdges]);
 
-	// Handle node click for product focus mode
+	// Handle node click for product focus mode and ticket detail panel
 	const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
 		if (node.type === 'product') {
 			setFocusedProduct(node.id);
+		} else if (node.type === 'ticket') {
+			setSelectedTicket(node);
 		}
 	}, []);
 
@@ -237,6 +241,14 @@ export default function GraphDashboard() {
 				<Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#1e293b" />
 				<Controls className="glass-panel" />
 			</ReactFlow>
+			
+			{/* Ticket Detail Panel */}
+			{selectedTicket && (
+				<TicketDetailPanel 
+					ticket={selectedTicket.data} 
+					onClose={() => setSelectedTicket(null)} 
+				/>
+			)}
 		</div>
 	);
 }
