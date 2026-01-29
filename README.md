@@ -2,11 +2,29 @@
 
 ## 🎯 Project Overview
 
+The Cloudflare Graph Dashboard is a live, interactive node-graph visualization system for aggregating and managing issues, queries, and feature requests from multiple platforms. Built entirely on Cloudflare's edge infrastructure.
+
 **Live Demo**: https://app.imsanjeeva.workers.dev
 
-The Cloudflare Graph Dashboard is a live, interactive node-graph visualization system for aggregating and managing issues, queries, and feature requests from multiple platforms (Discord, GitHub, Community Forums). Built entirely on Cloudflare's edge infrastructure.
+---
 
-![Production Dashboard](/Users/sanjeeva/.gemini/antigravity/brain/0e8bc809-a88a-4a26-adcb-7bd25ba9cc3f/final_dashboard_populated_1769513317827.png)
+## 📸 Screenshots
+
+### Production Dashboard
+The main radial view showing the hierarchical relationship between Cloudflare, Products, Categories, and Tickets.
+![Production Dashboard](Pics/Production%20Dashboard.png)
+
+### Interactive Guided Tour
+A built-in onboarding experience helps new users navigate the complex graph features.
+![Guided Tour](Pics/Guided%20Tour.png)
+
+### Focus Mode
+Clicking a product node isolates its subgraph, switching to a clean hierarchical tree layout.
+![Focus Mode](Pics/Focus%20Mode.png)
+
+### Ticket Information Panel
+AI-enriched details panel showing automated descriptions, duplicate detection, and suggested fixes.
+![Ticket Info](Pics/Ticket%20Info.png)
 
 ---
 
@@ -178,7 +196,6 @@ All project documentation is maintained in the `docs/` directory:
 - **[Design Doc](docs/design_doc.md)** - UI/UX specifications
 - **[Tech Stack](docs/tech_stack.md)** - Technology choices and free tier limits
 - **[Todo List](docs/todo.md)** - Detailed implementation checklist (all phases ✅)
-- **[Friction Log](docs/friction_log.md)** - Developer experience issues encountered
 - **[Deployment Guide](docs/deployment.md)** - Deployment instructions and CI/CD setup
 
 ---
@@ -218,7 +235,7 @@ All project documentation is maintained in the `docs/` directory:
 
 ## 👥 Credits
 
-**Built by**: Sanjeev  
+**Built by**: Sanjeeva  
 **Assignment**: Cloudflare PM Technical Assessment  
 **Platform**: Cloudflare Workers, D1, Vectorize, Workers AI  
 **Framework**: React + Vite + ReactFlow  
