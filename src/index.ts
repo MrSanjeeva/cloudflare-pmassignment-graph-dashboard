@@ -17,6 +17,71 @@ export default {
 	},
 } satisfies ExportedHandler<Env>;
 
+/**
+ * AI Enrichment Helper - Uses Llama 3 to generate detailed ticket metadata
+ */
+async function enrichTicketWithAI(
+	env: Env,
+	title: string,
+	product: string,
+	category: string
+): Promise<{
+	description: string;
+	suggestedFix: string;
+	severity: 'High' | 'Medium' | 'Low';
+	origin: string;
+}> {
+	try {
+		const prompt = `Analyze this Cloudflare ${product} issue in the ${category} category:
+
+Issue: "${title}"
+
+Provide a technical analysis in this exact JSON format:
+{
+  "description": "2-3 sentence technical explanation of the issue",
+  "suggestedFix": "Specific actionable steps to resolve this issue",
+  "severity": "High, Medium, or Low",
+  "origin": "API, UI, Database, Network, or Configuration"
+}
+
+Respond ONLY with valid JSON, no other text.`;
+
+		const aiResponse: any = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
+			messages: [
+				{
+					role: 'system',
+					content: 'You are a technical support AI that analyzes Cloudflare product issues. Always respond with valid JSON only.',
+				},
+				{
+					role: 'user',
+					content: prompt,
+				},
+			],
+		});
+
+		// Parse AI response
+		const responseText = aiResponse.response || '{}';
+		const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+		const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+
+		return {
+			description: parsed.description || `Technical issue related to ${title}`,
+			suggestedFix: parsed.suggestedFix || 'Contact Cloudflare support for assistance.',
+			severity: parsed.severity || 'Medium',
+			origin: parsed.origin || 'Unknown',
+		};
+	} catch (error) {
+		console.error('AI enrichment failed:', error);
+		// Fallback to basic metadata
+		return {
+			description: `Issue reported: ${title}`,
+			suggestedFix: 'Please review the documentation or contact support.',
+			severity: 'Medium',
+			origin: 'Unknown',
+		};
+	}
+}
+
 async function handleAPI(url: URL, request: Request, env: Env): Promise<Response> {
 	const headers = {
 		'Content-Type': 'application/json',
@@ -115,12 +180,22 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 			);
 		}
 
-		// POST /api/seed - Populate database with mock data
+		// POST /api/seed - Populate database with mock data (AI-enriched)
 		if (url.pathname === '/api/seed' && request.method === 'POST') {
+			console.log('Starting AI-enriched seed process...');
+			
 			// Clear existing data
 			await env.DB.prepare('DELETE FROM tickets').run();
 			await env.DB.prepare('DELETE FROM edges').run();
 			await env.DB.prepare('DELETE FROM nodes').run();
+			
+			// Clear Vectorize index (best effort)
+			try {
+				// Note: Vectorize doesn't have a clear all method, so we'll just overwrite
+				console.log('Vectorize index will be repopulated with new embeddings');
+			} catch (e) {
+				console.warn('Vectorize clear skipped:', e);
+			}
 
 			const centerX = 600;
 			const centerY = 450;
@@ -231,10 +306,14 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 			ticketsByCategory[ticket.category].push(ticket);
 		}
 		
+		// AI-enriched ticket processing
 		let ticketCount = 0;
+		const enrichmentStats = { total: 0, enriched: 0, duplicates: 0 };
+		
 		for (const ticket of tickets) {
 			const ticketId = `ticket-${ticketCount++}`;
 			const nodeId = `${ticket.category}-${ticketId}`;
+			enrichmentStats.total++;
 
 			// Find category and its product
 			const category = categories.find(c => c.id === ticket.category)!;
@@ -264,29 +343,96 @@ async function handleAPI(url: URL, request: Request, env: Env): Promise<Response
 			const x = categoryX + ticketRadius * Math.cos(ticketAngleRad);
 			const y = categoryY + ticketRadius * Math.sin(ticketAngleRad);
 
-			// Mark second ticket as duplicate (Fetch API timing out)
-			const metadata: any = {};
-			if (ticketId === 'ticket-1') {
-				metadata.duplicateOf = 'workers-bugs-ticket-0';
-				metadata.duplicateScore = 0.94;
+			// ===== AI ENRICHMENT PIPELINE =====
+			console.log(`Enriching ticket ${ticketCount}/${tickets.length}: ${ticket.title}`);
+			
+			// 1. Generate AI-enriched metadata
+			const aiMetadata = await enrichTicketWithAI(
+				env,
+				ticket.title,
+				product.label,
+				category.label
+			);
+			enrichmentStats.enriched++;
+			
+			// 2. Generate embedding for duplicate detection
+			const embeddingText = `${ticket.title} ${aiMetadata.description}`;
+			const embeddingResult: any = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
+				text: embeddingText,
+			});
+			const embedding = embeddingResult.data[0];
+			
+			// 3. Store embedding in Vectorize
+			await env.VECTORIZE_INDEX.insert([{
+				id: nodeId,
+				values: embedding,
+				metadata: { 
+					title: ticket.title,
+					product: product.label,
+					category: category.label,
+				},
+			}]);
+			
+			// 4. Query for duplicates (skip first ticket as it has no prior tickets)
+			let duplicateInfo: any = {};
+			if (ticketCount > 1) {
+				try {
+					const duplicateResults = await env.VECTORIZE_INDEX.query(embedding, {
+						topK: 3,
+						returnMetadata: true,
+					});
+					
+					// Find best match (excluding self)
+					const bestMatch = duplicateResults.matches.find(m => m.id !== nodeId);
+					if (bestMatch && bestMatch.score > 0.85) {
+						duplicateInfo.duplicateOf = bestMatch.id;
+						duplicateInfo.duplicateScore = Math.round(bestMatch.score * 100) / 100;
+						enrichmentStats.duplicates++;
+						console.log(`  → Duplicate detected: ${bestMatch.score.toFixed(2)} similarity to ${bestMatch.id}`);
+					}
+				} catch (e) {
+					console.warn('Duplicate detection failed:', e);
+				}
 			}
+			
+			// 5. Combine all metadata
+			const fullMetadata = {
+				...aiMetadata,
+				...duplicateInfo,
+				category: category.label,
+				status: 'Open',
+				createdAt: new Date().toISOString(),
+			};
 
+			// 6. Insert node with enriched metadata
+			await env.DB.prepare(
+				'INSERT INTO nodes (id, type, label, x, y, metadata) VALUES (?, ?, ?, ?, ?, ?)'
+			).bind(nodeId, 'ticket', ticket.title, x, y, JSON.stringify(fullMetadata)).run();
 
-				await env.DB.prepare(
-					'INSERT INTO nodes (id, type, label, x, y, metadata) VALUES (?, ?, ?, ?, ?, ?)'
-				).bind(nodeId, 'ticket', ticket.title, x, y, JSON.stringify(metadata)).run();
+			// 7. Insert edge
+			await env.DB.prepare(
+				'INSERT INTO edges (id, source, target, type) VALUES (?, ?, ?, ?)'
+			).bind(`e-${ticket.category}-${nodeId}`, ticket.category, nodeId, 'default').run();
 
-				await env.DB.prepare(
-					'INSERT INTO edges (id, source, target, type) VALUES (?, ?, ?, ?)'
-				).bind(`e-${ticket.category}-${nodeId}`, ticket.category, nodeId, 'default').run();
+			// 8. Insert ticket with AI-generated description
+			await env.DB.prepare(
+				'INSERT INTO tickets (id, node_id, title, description, status, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+			).bind(ticketId, nodeId, ticket.title, aiMetadata.description, 'open', Date.now()).run();
+		}
 
-				await env.DB.prepare(
-					'INSERT INTO tickets (id, node_id, title, description, status, created_at) VALUES (?, ?, ?, ?, ?, ?)'
-				).bind(ticketId, nodeId, ticket.title, ticket.description, 'open', Date.now()).run();
-			}
-
+			console.log('AI enrichment complete:', enrichmentStats);
+			
 			return new Response(
-				JSON.stringify({ success: true, message: 'Mock data created', counts: { products: products.length, categories: categories.length, tickets: tickets.length } }),
+				JSON.stringify({ 
+					success: true, 
+					message: 'AI-enriched mock data created', 
+					counts: { 
+						products: products.length, 
+						categories: categories.length, 
+						tickets: tickets.length 
+					},
+					enrichment: enrichmentStats
+				}),
 				{ headers }
 			);
 		}
